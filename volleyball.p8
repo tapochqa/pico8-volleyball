@@ -152,10 +152,10 @@ function ball_move(field, ball, p1, p2)
 
   if (ball['x'] + ball['horizontal speed'] + ball['radius'] >= field['right wall']) then
     ball['horizontal speed'] *= new_impulse
-    ball['x'] = field['right wall'] - ball['radius']
+    ball['x'] = field['right wall'] - ball['radius'] + ball['horizontal speed']
   elseif (ball['x'] + ball['horizontal speed'] - ball['radius'] <= field['left wall']) then
     ball['horizontal speed'] *= new_impulse
-    ball['x'] = field['left wall'] + ball['radius']
+    ball['x'] = field['left wall'] + ball['radius'] + ball['horizontal speed']
   elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
     ball['x'] += ball['horizontal speed']
   end
@@ -210,11 +210,11 @@ function ai_core(field, player, ball, side)
   y_lambda = abs(player['y'] - ball['y'])
 
   if (side == 'r') then
-    lambda_l = -8
-    lambda_r = -3
+    lambda_l = -11
+    lambda_r = -6
   else
-    lambda_r = 8
-    lambda_l = 3
+    lambda_r = 11
+    lambda_l = 6
   end
 
   if (x_lambda > lambda_l) then
@@ -250,7 +250,6 @@ function _update()
   
   s = ball_player_collision(s, p)
   s = ball_player_collision(s, p2)
-
 
   s['vertical speed'] += f['g'] * s['m']
   p['vertical speed'] += f['g'] * p['m']
