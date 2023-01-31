@@ -20,9 +20,9 @@ s =     {['x'] = 15,
          ['m'] = 1.5,
          ['in collision'] = false}
 
-n =     {['h'] = 80 - s['radius'],
+n =     {['h'] = 80,
          ['l'] = 62,
-         ['r'] = 65}
+         ['r'] = 63}
 
 p =     {['x'] = 15,
          ['init x'] = 15,
@@ -128,7 +128,31 @@ function ball_player_collided(ball, player)
 end
 
 
-function ball_move(field, ball, p1, p2)
+function ball_net_collided(field, ball, net)
+
+  -- https://stackoverflow.com/a/402010/10354619
+
+  net_x = (net['r'] + net['l']) / 2
+  net_y = (net['h'] + field['floor']) / 2
+  net_height = abs(net['h'] - field['floor'])
+  net_width = abs(net['r'] - net['l'])
+
+  delta_x = abs(ball['x'] + ball['horizontal speed'] - net_x)
+  delta_y = abs(ball['y'] + ball['vertical speed'] - net_y)
+
+  if (delta_x > net_width / 2 + ball['radius']) then return false end
+  if (delta_y > net_height / 2 + ball['radius']) then return false end 
+
+  if (delta_x <= net_width / 2) then return true end
+  if (delta_y <= net_height / 2) then return true end
+
+  corner_distance_sq = (delta_x - net_width / 2) ^ 2 + (delta_y - net_height / 2) ^ 2
+  return (corner_distance_sq <= ball['radius'] ^ 2)
+
+end
+
+
+function ball_move(field, ball, net, p1, p2)
 
   new_impulse = -1 * field['friction']
 
@@ -156,6 +180,24 @@ function ball_move(field, ball, p1, p2)
   elseif (ball['x'] + ball['horizontal speed'] - ball['radius'] <= field['left wall']) then
     ball['horizontal speed'] *= new_impulse
     ball['x'] = field['left wall'] + ball['radius'] + ball['horizontal speed']
+  elseif (ball_net_collided(field, ball, net) == true) then
+
+    if (ball['x'] > net['l'] and ball['horizontal speed'] > 0) then
+      ball['vertical speed'] *= new_impulse
+      repeat
+        ball['y'] += ball['vertical speed']
+      until (ball_net_collided(field, ball, net) == false)
+    elseif (ball['x'] < net['r'] and ball['horizontal speed'] < 0) then
+      ball['vertical speed'] *= new_impulse
+      repeat
+        ball['y'] += ball['vertical speed']
+      until (ball_net_collided(field, ball, net) == false)
+    else
+      ball['horizontal speed'] *= new_impulse
+      repeat
+        ball['x'] += ball['horizontal speed']
+      until (ball_net_collided(field, ball, net) == false)
+    end
   elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
     ball['x'] += ball['horizontal speed']
   end
@@ -197,12 +239,6 @@ function ball_player_collision(ball, player)
 
   return ball
 end
-
-
-function ball_net_collision( ... )
-  -- body
-end
-
 
 
 function ai_core(field, player, ball, side)
@@ -255,16 +291,16 @@ function _update()
   p['vertical speed'] += f['g'] * p['m']
   p2['vertical speed'] += f['g'] * p2['m']
   
-  f['left wall'] = count_wall(f, s, n, 'l')
-  f['right wall'] = count_wall(f, s, n, 'r')
+  f['left wall'] = f['default lw']
+  f['right wall'] = f['default rw']
 
   p  = player_move(f, p,  s, n, btn(4, 0), btn(1, 0), btn(0, 0), 'l')
   p2 = player_move(f, p2, s, n, btn(4, 1), btn(1, 1), btn(0, 1), 'r')
 
   p2 = ai(f, p2, s, n, 'l')
-  --p =  ai(f, p, s, n, 'r')
+  -- p =  ai(f, p, s, n, 'r')
 
-  s = ball_move(f, s, p, p2)
+  s = ball_move(f, s, n, p, p2)
 
   
 
@@ -306,8 +342,6 @@ function _draw()
   circfill(p['x'], p['y'], p['radius'], 0)
   circfill(p2['x'], p2['y'], p2['radius'], 0)
   print(p['points'] .. ' : ' .. p2['points'], 5, 5, 0)
-
-  
 
 end
 
