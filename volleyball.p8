@@ -10,10 +10,13 @@ f =     {['g'] = 0.2,
          ['celling'] = 5,
          ['default lw'] = 1,
          ['default rw'] = 127,
-         ['friction'] = 0.75}
+         ['friction'] = 0.75,
+         ['max points'] = 11,
+         ['counter'] = 100,
+         ['status'] = ''}
 
 s =     {['x'] = 15,
-         ['y'] = 0,
+         ['y'] = 10,
          ['vertical speed'] = 0,
          ['horizontal speed'] = 0,
          ['radius'] = 4,
@@ -33,7 +36,8 @@ p =     {['x'] = 15,
          ['m'] = 3,
          ['points'] = 0,
          ['jump speed'] = 8,
-         ['in collision'] = false}
+         ['in collision'] = false,
+         ['name'] = 'p1'}
 
 p2 =    {['x'] = f['default rw'] - 15,
          ['init x'] = f['default rw'] - 15,
@@ -44,7 +48,8 @@ p2 =    {['x'] = f['default rw'] - 15,
          ['m'] = 3,
          ['points'] = 0,
          ['jump speed'] = 8,
-         ['in collision'] = false}
+         ['in collision'] = false,
+         ['name'] = 'cpu'}
 
 
 
@@ -168,6 +173,7 @@ function ball_move(field, ball, net, p1, p2)
     ball['vertical speed'] *= new_impulse
     ball['y'] = field['floor']
   elseif (ball['y'] < field['celling']) then
+    sfx(3)
     ball['vertical speed'] *= new_impulse
     ball['y'] = field['celling']
   elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
@@ -175,13 +181,15 @@ function ball_move(field, ball, net, p1, p2)
   end
 
   if (ball['x'] + ball['horizontal speed'] + ball['radius'] >= field['right wall']) then
+    sfx(3)
     ball['horizontal speed'] *= new_impulse
     ball['x'] = field['right wall'] - ball['radius'] + ball['horizontal speed']
   elseif (ball['x'] + ball['horizontal speed'] - ball['radius'] <= field['left wall']) then
+    sfx(3)
     ball['horizontal speed'] *= new_impulse
     ball['x'] = field['left wall'] + ball['radius'] + ball['horizontal speed']
   elseif (ball_net_collided(field, ball, net) == true) then
-
+    sfx(3)
     if (ball['x'] > net['l'] and ball['horizontal speed'] > 0) then
       ball['vertical speed'] *= new_impulse
       repeat
@@ -198,6 +206,7 @@ function ball_move(field, ball, net, p1, p2)
         ball['x'] += ball['horizontal speed']
       until (ball_net_collided(field, ball, net) == false)
     end
+    
   elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
     ball['x'] += ball['horizontal speed']
   end
@@ -283,6 +292,8 @@ end
 
 
 function _update()
+
+  f['counter'] = f['counter'] + 1
   
   s = ball_player_collision(s, p)
   s = ball_player_collision(s, p2)
@@ -315,33 +326,49 @@ function _update()
       s['x'] = p2['init x']
       sfx(2)
     end
-
-    
     
     p['x'] = p['init x']
     p2['x'] = p2['init x']
     p['y'] = f['floor']
     p2['y'] = f['floor']
-    s['y'] = 0
+    s['y'] = 10
+    s['vertical speed'] = 0
     s['horizontal speed'] = 0
-
 
   end
 
-  
- 
+  if (p['points'] == f['max points'] or p2['points'] == f['max points']) then
 
 
+    if (p['points'] == f['max points']) then
+      f['status'] = p['name'] .. ' won'
+    else
+      f['status'] = p2['name'] .. ' won'
+    end
+
+    s['x'] = p['init x']
+    f['counter'] = 0
+    p['points'] = 0
+    p2['points'] = 0
+  end
 
 end
  
 function _draw()
   cls(7)
+
+  if (f['counter'] < 100) then
+    print(f['status'], 50, 60)
+  end
+  
   rectfill(n['l'], 127, n['r'], n['h'], 0)
   circfill(s['x'], s['y'], s['radius'], 8)
   circfill(p['x'], p['y'], p['radius'], 0)
   circfill(p2['x'], p2['y'], p2['radius'], 0)
-  print(p['points'] .. ' : ' .. p2['points'], 5, 5, 0)
+  print(p['points'] .. ':' .. p2['points'], 5, 5, 0)
+  print('❎   jump', 128-40, 5, 0)
+  print('⬅️➡️ move', 128-40, 13, 0)
+
 
 end
 
@@ -483,6 +510,7 @@ __sfx__
 000100000b65000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0004000018550195501d5502155000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000400001c5501a550195501855000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+000100000115000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __music__
 00 01424344
 
