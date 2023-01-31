@@ -185,8 +185,8 @@ function ball_player_collision(ball, player)
 
     repeat
       hypotenuse = sqrt((ball['x'] - player['x']) ^ 2 + (ball['y'] - player['y']) ^ 2)
-      ball['x'] += ball['horizontal speed'] / 10
-      ball['y'] += ball['vertical speed'] / 10
+      ball['x'] += ball['horizontal speed'] / 7
+      ball['y'] += ball['vertical speed'] / 7
     until(hypotenuse - ball['radius'] - player['radius'] > 4)
 
     ball['in collision'] = true
