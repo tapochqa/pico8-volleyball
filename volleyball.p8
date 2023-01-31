@@ -24,19 +24,22 @@ n =     {['h'] = 70,
          ['r'] = 64}
 
 p =     {['x'] = 15,
+         ['init x'] = 15,
          ['y'] = 127 - 10,
          ['vertical speed'] = 0,
          ['horizontal speed'] = 3,
          ['radius'] = 8,
-         ['m'] = 3}
+         ['m'] = 3,
+         ['points'] = 0}
 
-p2 =    {['x'] = 15,
+p2 =    {['x'] = f['default rw'] - 15,
+         ['init x'] = f['default rw'] - 15,
          ['y'] = 127 - 10,
          ['vertical speed'] = 0,
          ['horizontal speed'] = 3,
          ['radius'] = 8,
-         ['m'] = 3}
-p2['x'] = f['default rw'] - 15
+         ['m'] = 3,
+         ['points'] = 0}
 
 
 
@@ -171,6 +174,25 @@ function _update()
   s = ball_player_collision(s, p2)
 
 
+  if (s['y'] >= f['floor']) then
+    if (s['x'] >= n['r']) then
+      p['points'] += 1
+      s['x'] = p['init x']
+    elseif (s['x'] <= n['l']) then
+      p2['points'] += 1
+      s['x'] = p2['init x']
+    end
+
+    p['x'] = p['init x']
+    p2['x'] = p2['init x']
+    s['y'] = 0
+    s['horizontal speed'] = 0
+
+  end
+ 
+
+
+
 end
  
 function _draw()
@@ -179,4 +201,5 @@ function _draw()
   circfill(s['x'], s['y'], s['radius'], 15)
   circfill(p['x'], p['y'], p['radius'], 12)
   circfill(p2['x'], p2['y'], p2['radius'], 14)
+  print(p['points'] .. ' : ' .. p2['points'], 3)
 end
