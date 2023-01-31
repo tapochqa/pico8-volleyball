@@ -17,7 +17,8 @@ s =     {['x'] = 15,
          ['vertical speed'] = 0,
          ['horizontal speed'] = 0,
          ['radius'] = 4,
-         ['m'] = 1.5}
+         ['m'] = 1.5,
+         ['in collision'] = false}
 
 n =     {['h'] = 80 - s['radius'],
          ['l'] = 62,
@@ -31,7 +32,8 @@ p =     {['x'] = 15,
          ['radius'] = 8,
          ['m'] = 3,
          ['points'] = 0,
-         ['jump speed'] = 8}
+         ['jump speed'] = 8,
+         ['in collision'] = false}
 
 p2 =    {['x'] = f['default rw'] - 15,
          ['init x'] = f['default rw'] - 15,
@@ -41,7 +43,8 @@ p2 =    {['x'] = f['default rw'] - 15,
          ['radius'] = 8,
          ['m'] = 3,
          ['points'] = 0,
-         ['jump speed'] = 8}
+         ['jump speed'] = 8,
+         ['in collision'] = false}
 
 
 
@@ -109,7 +112,23 @@ function player_move(field, player, ball, net, btn_jump, btn_r, btn_l, side)
 end
 
 
-function ball_move(field, ball)
+function ball_player_collided(ball, player)
+  ball_fin_x = ball['x']
+  ball_fin_y = ball['y']
+  p_fin_x = player['x']
+  p_fin_y = player['y']
+
+  hypotenuse = sqrt(((ball_fin_x - p_fin_x) ^ 2) + ((ball_fin_y - p_fin_y) ^ 2))
+
+  if (hypotenuse <= ball['radius'] + player['radius']) then
+    return true
+  else
+    return false
+  end
+end
+
+
+function ball_move(field, ball, p1, p2)
 
   new_impulse = -1 * field['friction']
 
@@ -127,7 +146,7 @@ function ball_move(field, ball)
   elseif (ball['y'] < field['celling']) then
     ball['vertical speed'] *= new_impulse
     ball['y'] = field['celling']
-  else
+  elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
     ball['y'] += ball['vertical speed']
   end
 
@@ -137,7 +156,7 @@ function ball_move(field, ball)
   elseif (ball['x'] + ball['horizontal speed'] - ball['radius'] <= field['left wall']) then
     ball['horizontal speed'] *= new_impulse
     ball['x'] = field['left wall'] + ball['radius']
-  else
+  elseif (not ball_player_collided(ball, p1) and not ball_player_collided(ball, p2)) then
     ball['x'] += ball['horizontal speed']
   end
 
@@ -145,18 +164,36 @@ function ball_move(field, ball)
 end
 
 
+
+
 function ball_player_collision(ball, player)
-  hypotenuse = sqrt((ball['x'] - player['x']) ^ 2 + (ball['y'] - player['y']) ^ 2)
-  vertical =  player['y'] - ball['y']
-  horizontal = player['x'] - ball['x'] 
+
+  ball_fin_x = ball['x']
+  ball_fin_y = ball['y']
+  p_fin_x = player['x']
+  p_fin_y = player['y']
+
+  hypotenuse = sqrt(((ball_fin_x - p_fin_x) ^ 2) + ((ball_fin_y - p_fin_y) ^ 2))
+  vertical =   p_fin_y - ball_fin_y
+  horizontal =  p_fin_x - ball_fin_x  
+  relation = ball['radius'] / player['radius'] 
 
   if (hypotenuse <= ball['radius'] + player['radius']) then
     ball['vertical speed'] = vertical / hypotenuse * -5 + player['vertical speed'] / 5
     ball['horizontal speed'] = horizontal / hypotenuse * -5
     sfx(0)
+
+    repeat
+      hypotenuse = sqrt((ball['x'] - player['x']) ^ 2 + (ball['y'] - player['y']) ^ 2)
+      ball['x'] += ball['horizontal speed'] / 10
+      ball['y'] += ball['vertical speed'] / 10
+    until(hypotenuse - ball['radius'] - player['radius'] > 4)
+
+    ball['in collision'] = true
+  else 
+    ball['in collision'] = false
   end
 
-  
 
   return ball
 end
@@ -211,7 +248,10 @@ end
 
 function _update()
   
-  
+  s = ball_player_collision(s, p)
+  s = ball_player_collision(s, p2)
+
+
   s['vertical speed'] += f['g'] * s['m']
   p['vertical speed'] += f['g'] * p['m']
   p2['vertical speed'] += f['g'] * p2['m']
@@ -219,17 +259,15 @@ function _update()
   f['left wall'] = count_wall(f, s, n, 'l')
   f['right wall'] = count_wall(f, s, n, 'r')
 
-
   p  = player_move(f, p,  s, n, btn(4, 0), btn(1, 0), btn(0, 0), 'l')
   p2 = player_move(f, p2, s, n, btn(4, 1), btn(1, 1), btn(0, 1), 'r')
 
   p2 = ai(f, p2, s, n, 'l')
   --p =  ai(f, p, s, n, 'r')
 
-  s = ball_move(f, s)
+  s = ball_move(f, s, p, p2)
+
   
-  s = ball_player_collision(s, p)
-  s = ball_player_collision(s, p2)
 
 
   if (s['y'] >= f['floor']) then
@@ -269,6 +307,9 @@ function _draw()
   circfill(p['x'], p['y'], p['radius'], 0)
   circfill(p2['x'], p2['y'], p2['radius'], 0)
   print(p['points'] .. ' : ' .. p2['points'], 5, 5, 0)
+
+  
+
 end
 
 
