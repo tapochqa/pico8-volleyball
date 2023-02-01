@@ -1,6 +1,8 @@
+MAC-P8 = /Applications/PICO-8.app/Contents/MacOS/pico8
+
 
 run:
-	/Applications/PICO-8.app/Contents/MacOS/pico8 -run volleyball.p8
+	${MAC-P8} -run volleyball.p8
 
 web:
-	/Applications/PICO-8.app/Contents/MacOS/pico8 -x volleyball.p8 -export public/index.html
+	${MAC-P8} -x volleyball.p8 -export public/index.html
