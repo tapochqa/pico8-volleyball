@@ -2,8 +2,6 @@ pico-8 cartridge // http://www.pico-8.com
 version 39
 __lua__
 
-
-
 f =     {['g'] = 0.2,
          ['default floor'] = 124,
          ['floor'] = 124,
@@ -260,7 +258,9 @@ function ball_player_collision(field, ball, net, player)
 
     if (ball_net_collided(field, ball, net) == true) then
       ball['horizontal speed'] *= -1
-      ball['vertical speed'] = -7
+      if (ball ['vertical speed'] == 0) then
+        ball['vertical speed'] = -7
+      end
     end
 
     repeat
@@ -383,9 +383,13 @@ function _update()
   end
 
 end
+
+
+build = 2
+
  
 function _draw()
-  cls(15)
+  cls(135)
 
   if (f['counter'] < 100) then
     print(f['status'], 50, 60)
@@ -397,7 +401,8 @@ function _draw()
   circfill(p['x'], p['y'], p['radius'], 0)
   circfill(p2['x'], p2['y'], p2['radius'], 0)
   print(p['points'] .. ':' .. p2['points'], 5, 5, 0)
-  print('❎   jump', 128-40, 5, 0)
+  print('v. ' .. build, 5, 13, 0)
+  print('🅾️   jump', 128-40, 5, 0)
   print('⬅️➡️ move', 128-40, 13, 0)
 
 
