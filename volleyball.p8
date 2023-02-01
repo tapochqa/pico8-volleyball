@@ -52,6 +52,20 @@ p2 =    {['x'] = f['default rw'] - 15,
          ['name'] = 'cpu'}
 
 
+function shallow_copy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[orig_key] = orig_value
+        end
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 
 
 function count_wall(field, ball, net, side)
@@ -217,7 +231,7 @@ end
 
 
 
-function ball_player_collision(ball, player)
+function ball_player_collision(field, ball, net, player)
 
   ball_fin_x = ball['x']
   ball_fin_y = ball['y']
@@ -227,12 +241,27 @@ function ball_player_collision(ball, player)
   hypotenuse = sqrt(((ball_fin_x - p_fin_x) ^ 2) + ((ball_fin_y - p_fin_y) ^ 2))
   vertical =   p_fin_y - ball_fin_y
   horizontal =  p_fin_x - ball_fin_x  
-  relation = ball['radius'] / player['radius'] 
+  relation = ball['radius'] / player['radius']
+
+  ball2 = shallow_copy(ball)
+
+  if (player['x'] < net['l']) then
+    d = -ball2['radius'] * 2
+  else
+    d = ball2['radius'] * 2
+  end
+
+  ball2['x'] -= horizontal / hypotenuse * 5 + d
 
   if (hypotenuse <= ball['radius'] + player['radius']) then
     ball['vertical speed'] = vertical / hypotenuse * -5 + player['vertical speed'] / 5
     ball['horizontal speed'] = horizontal / hypotenuse * -5
     sfx(0)
+
+    if (ball_net_collided(field, ball, net) == true) then
+      ball['horizontal speed'] *= -1
+      ball['vertical speed'] = -7
+    end
 
     repeat
       hypotenuse = sqrt((ball['x'] - player['x']) ^ 2 + (ball['y'] - player['y']) ^ 2)
@@ -295,8 +324,8 @@ function _update()
 
   f['counter'] = f['counter'] + 1
   
-  s = ball_player_collision(s, p)
-  s = ball_player_collision(s, p2)
+  s = ball_player_collision(f, s, n, p)
+  s = ball_player_collision(f, s, n, p2)
 
   s['vertical speed'] += f['g'] * s['m']
   p['vertical speed'] += f['g'] * p['m']
@@ -336,6 +365,7 @@ function _update()
     s['horizontal speed'] = 0
 
   end
+--]]
 
   if (p['points'] == f['max points'] or p2['points'] == f['max points']) then
 
